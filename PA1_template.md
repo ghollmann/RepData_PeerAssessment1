@@ -24,7 +24,8 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
  <br />  
  
 #### Read in the datafile and change date to date data type.  
-```{r}
+
+```r
 library(lattice)
 library(ggplot2)
 activityMonitoringData <- read.csv("activity.csv", header=T ,sep=",",
@@ -36,7 +37,8 @@ activityMonitoringData <- read.csv("activity.csv", header=T ,sep=",",
 ### What is the mean total number of steps taken per day?
 
 #### Set up the data and produce a histogram for the total number of steps per day.
-```{r histogram_Total_Steps, warning=FALSE}
+
+```r
 stepTotal <- data.frame(as.table(tapply(activityMonitoringData$steps, 
                                         activityMonitoringData$date,
                                         sum, na.rm=TRUE), row.names()))
@@ -48,24 +50,28 @@ stepTotal$TotalSteps<- as.integer(stepTotal$TotalSteps)
 ggplot(data=stepTotal, aes(y=TotalSteps, x=Date)) +
         geom_histogram(stat="identity", width=1)
 ```
+
+![](PA1_template_files/figure-html/histogram_Total_Steps-1.png)<!-- -->
 <br />  
 
 #### What is the mean and median number of steps?
 
-```{r mean_median_step, warning=FALSE}
+
+```r
 options(scipen = 999)
 meanTotalSteps <- mean(stepTotal$TotalSteps, na.rm=TRUE)
 medianTotalSteps <- median(stepTotal$TotalSteps, na.rm=TRUE)
 ```
 
-##### The mean number of steps per day is `r meanTotalSteps`.  
-##### The median number of steps per day is `r medianTotalSteps`.  
+##### The mean number of steps per day is 9354.2295082.  
+##### The median number of steps per day is 10395.  
 <br />  
 
 ### What is the average daily pattern?
 
 #### Determine the totals for each 5 minute increment, format and plot.  
-```{r Average_Daily_Pattern}
+
+```r
 AveStepsPer5MinInt <- data.frame(as.table(tapply(activityMonitoringData$steps, 
                                                  activityMonitoringData$interval,
                                                  mean, na.rm=TRUE), row.names()))
@@ -78,27 +84,34 @@ plot(as.character(AveStepsPer5MinInt$TimeOfDay),AveStepsPer5MinInt$MeanSteps,
      main="Average Number of Steps Throughout a Day")
 axis (side=1, at=c("0000","0300","0600","0900","1200","1500","1800","2100",
                    "2400"))
+```
+
+![](PA1_template_files/figure-html/Average_Daily_Pattern-1.png)<!-- -->
+
+```r
 MaxStepsTime <- AveStepsPer5MinInt[which.max(AveStepsPer5MinInt$MeanSteps),1 ]
 stringi::stri_sub(MaxStepsTime,2,1) <- ":" #found from stackoverflow.com site
 ```
 
-##### Time of day where average steps are the most is `r MaxStepsTime`
+##### Time of day where average steps are the most is 8:35
 <br />     
 
 ### Imputing missing values
    
 #### Determine the number of rows with NAs.
 
-```{r}
+
+```r
 missingNAs <- nrow(activityMonitoringData[rowSums(is.na(activityMonitoringData))>0,])
 ```
 
-##### The number of rows where step value is missing is `r missingNAs`
+##### The number of rows where step value is missing is 2304
 <br />  
 
 #### Creating a new dataset and replacing the NAs with the time of day mean and ploting new histogram for total steps in a day. Then reporting the new mean and median steps per day.
 
-```{r No_NAs, warning=FALSE}
+
+```r
 activityMonitoringData1 <- activityMonitoringData
 for (i in 1:nrow(activityMonitoringData1)){
         if (is.na(activityMonitoringData1$steps[i])) {
@@ -117,22 +130,27 @@ stepTotal1$TotalSteps<- as.integer(stepTotal1$TotalSteps)
 
 ggplot(data=stepTotal1, aes(y=TotalSteps, x=Date)) +
         geom_histogram(stat="identity", width=1)
+```
 
+![](PA1_template_files/figure-html/No_NAs-1.png)<!-- -->
+
+```r
 ats <- mean(stepTotal1$TotalSteps)
 mdts <- median(stepTotal1$TotalSteps)
 ```
 
 ##### The orignial historgram has multiple days where there were only NA values and when the NAs were populated those days now have values for them.  
 
-##### The new mean number of steps per day is `r ats` a difference of `r ats - meanTotalSteps` from when NAs were ignored.
-##### The new median number of steps per day is `r mdts` a difference of `r mdts - medianTotalSteps` from when NAs were ignored.
+##### The new mean number of steps per day is 10766.1639344 a difference of 1411.9344262 from when NAs were ignored.
+##### The new median number of steps per day is 10766 a difference of 371 from when NAs were ignored.
 <br />
 
 ### Are there differences in activity patterns between weekdays and weekends?
 
 #### Creating a new factor variable in the filled-in dataset distiquishing a weekday day and weekend day. Then creating a panel plot containg a time series plot (i.e. type ="l") of the 5-minute interval(x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).  
 
-```{r}
+
+```r
 # Converting the date to either Weekday or Weekend 
 for (i in 1:nrow(activityMonitoringData1)) {
         wd <- weekdays(activityMonitoringData1[i,2])
@@ -173,3 +191,5 @@ allMeandf$TimeOfDay <- as.integer(as.character(allMeandf$TimeOfDay))
 xyplot(MeanSteps ~ TimeOfDay | WeekDayType, data=allMeandf, layout = c(1,2),
        type='l', scales=list(x=list(at=seq(0,2355, by=100), rot=90)))
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
